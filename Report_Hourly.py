@@ -2,7 +2,8 @@ import streamlit as st
 import json
 import os
 import urllib.parse
-import webbrowser
+from datetime import datetime
+import pytz
 
 SAVE_FILE = "vessel_report.json"
 
@@ -30,6 +31,10 @@ else:
         "opening_restow_load": 0,
         "opening_restow_disch": 0
     }
+
+# --- Current South African Date ---
+sa_tz = pytz.timezone("Africa/Johannesburg")
+today_date = datetime.now(sa_tz).strftime("%d/%m/%Y")
 
 st.title("Vessel Hourly Moves Tracker")
 
@@ -144,7 +149,7 @@ Berthed {berthed_date}
 First Lift @ 18h25
 Last Lift @ 10h31
 
-19/08/2025
+{today_date}
 {hourly_time}
 _________________________
    *HOURLY MOVES*
@@ -188,9 +193,11 @@ _________________________
 *Idle*
 """
 
-    st.text_area("WhatsApp Template", template, height=600)
+    # --- Show template in monospace in Streamlit ---
+    st.code(template)
 
     # --- Send to WhatsApp ---
     if whatsapp_number:
-        wa_link = f"https://wa.me/{whatsapp_number}?text={urllib.parse.quote(template)}"
+        wa_template = f"```{template}```"  # Force monospace in WhatsApp
+        wa_link = f"https://wa.me/{whatsapp_number}?text={urllib.parse.quote(wa_template)}"
         st.markdown(f"[Click here to open WhatsApp](<{wa_link}>)", unsafe_allow_html=True)
