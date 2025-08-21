@@ -163,19 +163,19 @@ POOP       {poop_restow_load:>5}     {poop_restow_disch:>5}
 _________________________
       *CUMULATIVE*
 _________________________
-           Load   Disch
+           Load   Discharge
 Plan       {planned_load:>5}      {planned_disch:>5}
 Done       {total_done_load:>5}      {total_done_disch:>5}
 Remain     {remaining_load:>5}      {remaining_disch:>5}
 _________________________
 *Restows*
-           Load   Disch
+           Load   Discharge
 Plan       {planned_restow_load:>5}      {planned_restow_disch:>5}
 Done       {total_done_restow_load:>5}      {total_done_restow_disch:>5}
 Remain     {remaining_restow_load:>5}      {remaining_restow_disch:>5}
 _________________________
 *Hatch Moves*
-           Open   Close
+           Open       Close
 FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:>5}
 MID        {hatch_mid_open:>5}      {hatch_mid_close:>5}
 AFT        {hatch_aft_open:>5}      {hatch_aft_close:>5}
