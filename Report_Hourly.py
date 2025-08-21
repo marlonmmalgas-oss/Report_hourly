@@ -7,12 +7,9 @@ import pytz
 
 SAVE_FILE = "vessel_report.json"
 
-# --- Load or initialize cumulative data ---
-if os.path.exists(SAVE_FILE):
-    with open(SAVE_FILE, "r") as f:
-        cumulative = json.load(f)
-else:
-    cumulative = {
+# --- Load or initialize cumulative data safely ---
+def load_cumulative():
+    default_data = {
         "done_load": 0,
         "done_disch": 0,
         "done_restow_load": 0,
@@ -31,6 +28,22 @@ else:
         "opening_restow_load": 0,
         "opening_restow_disch": 0
     }
+    if os.path.exists(SAVE_FILE):
+        try:
+            with open(SAVE_FILE, "r") as f:
+                data = json.load(f)
+            # Ensure all keys exist
+            for key in default_data:
+                if key not in data:
+                    data[key] = default_data[key]
+            return data
+        except (json.JSONDecodeError, ValueError):
+            # If file is empty or corrupted, return default data
+            return default_data
+    else:
+        return default_data
+
+cumulative = load_cumulative()
 
 # --- Current South African Date ---
 sa_tz = pytz.timezone("Africa/Johannesburg")
@@ -178,12 +191,15 @@ _________________________
 _________________________
 *Idle*
 """
+    # Show template in monospace
     st.code(template)
 
+    # WhatsApp link
     if wa_input:
         wa_template = f"```{template}```"
         if wa_type == "Private Number":
             wa_link = f"https://wa.me/{wa_input}?text={urllib.parse.quote(wa_template)}"
         else:
-            wa_link = f"{wa_input}?text={urllib.parse.quote(wa_template)}"
-        st.markdown(f"[Click here to open WhatsApp]({wa_link})", unsafe_allow_html=True)
+            # Group link
+            wa_link = wa_input
+        st.markdown(f"[Open WhatsApp]({wa_link})", unsafe
