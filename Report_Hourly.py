@@ -7,7 +7,7 @@ import pytz
 
 SAVE_FILE = "vessel_report.json"
 
-# --- Load or initialize cumulative data safely ---
+# Load or initialize cumulative data
 def load_cumulative():
     default_data = {
         "done_load": 0,
@@ -32,33 +32,31 @@ def load_cumulative():
         try:
             with open(SAVE_FILE, "r") as f:
                 data = json.load(f)
-            # Ensure all keys exist
             for key in default_data:
                 if key not in data:
                     data[key] = default_data[key]
             return data
         except (json.JSONDecodeError, ValueError):
-            # If file is empty or corrupted, return default data
             return default_data
     else:
         return default_data
 
 cumulative = load_cumulative()
 
-# --- Current South African Date ---
-sa_tz = pytz.timezone("Africa/Johannesburg")
-today_date = datetime.now(sa_tz).strftime("%d/%m/%Y")
+# Current South African Date
+tz = pytz.timezone("Africa/Johannesburg")
+today_date = datetime.now(tz).strftime("%d/%m/%Y")
 
 st.title("Vessel Hourly Moves Tracker")
 
-# --- Vessel Info ---
+# Vessel Info
 st.header("Vessel Info")
 vessel_name = st.text_input("Vessel Name", cumulative["vessel_name"])
 berthed_date = st.text_input("Berthed Date", cumulative["berthed_date"])
 first_lift = st.text_input("First Lift", "18h25")
 last_lift = st.text_input("Last Lift", "10h31")
 
-# --- Plan Totals & Opening Balance ---
+# Plan Totals & Opening Balance (internal only)
 st.header("Plan Totals & Opening Balance (Internal Only)")
 col1, col2 = st.columns(2)
 with col1:
@@ -72,7 +70,7 @@ with col2:
     opening_restow_load = st.number_input("Opening Restow Load (Deduction)", value=cumulative["opening_restow_load"])
     opening_restow_disch = st.number_input("Opening Restow Discharge (Deduction)", value=cumulative["opening_restow_disch"])
 
-# --- Hourly Dropdown ---
+# Hourly Dropdown
 st.header("Hourly Time")
 hours_list = []
 for h in range(24):
@@ -82,7 +80,7 @@ for h in range(24):
 default_hour = cumulative.get("last_hour") if cumulative.get("last_hour") in hours_list else "06h00 - 07h00"
 hourly_time = st.selectbox("Select Hourly Time", options=hours_list, index=hours_list.index(default_hour))
 
-# --- Hourly Moves grouped by section ---
+# Hourly Moves grouped by section
 st.header(f"Hourly Moves Input ({hourly_time})")
 
 # FWD
@@ -113,7 +111,7 @@ poop_disch = st.number_input("POOP Discharge", min_value=0, value=0)
 poop_restow_load = st.number_input("POOP Restow Load", min_value=0, value=0)
 poop_restow_disch = st.number_input("POOP Restow Discharge", min_value=0, value=0)
 
-# HATCH
+# Hatch Moves
 st.subheader("Hatch Moves")
 hatch_fwd_open = st.number_input("FWD Hatch Open", min_value=0, value=0)
 hatch_fwd_close = st.number_input("FWD Hatch Close", min_value=0, value=0)
@@ -122,14 +120,12 @@ hatch_mid_close = st.number_input("MID Hatch Close", min_value=0, value=0)
 hatch_aft_open = st.number_input("AFT Hatch Open", min_value=0, value=0)
 hatch_aft_close = st.number_input("AFT Hatch Close", min_value=0, value=0)
 
-# WhatsApp option
+# WhatsApp
 st.header("Send WhatsApp Message")
 wa_type = st.radio("Send to:", ["Private Number", "Group Link"])
 wa_input = st.text_input("Enter WhatsApp Number (with country code) or Group Invite Link")
 
-# Button to update template
 if st.button("Update Template"):
-    # Calculate cumulative totals
     total_done_load = cumulative["done_load"] + fwd_load + mid_load + aft_load + poop_load
     total_done_disch = cumulative["done_disch"] + fwd_disch + mid_disch + aft_disch + poop_disch
     total_done_restow_load = cumulative["done_restow_load"] + fwd_restow_load + mid_restow_load + aft_restow_load + poop_restow_load
@@ -140,9 +136,7 @@ if st.button("Update Template"):
     remaining_restow_load = planned_restow_load - total_done_restow_load - opening_restow_load
     remaining_restow_disch = planned_restow_disch - total_done_restow_disch - opening_restow_disch
 
-    # Template
-    template = f"""\
-{vessel_name}
+    template = f"""{vessel_name}
 Berthed {berthed_date}
 
 First Lift @ {first_lift}
@@ -182,7 +176,8 @@ Remain     {remaining_restow_load:>5}      {remaining_restow_disch:>5}
 _________________________
 *Hatch Moves*
            Open   Close
-FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:>5}
+FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:
+	:>5}
 MID        {hatch_mid_open:>5}      {hatch_mid_close:>5}
 AFT        {hatch_aft_open:>5}      {hatch_aft_close:>5}
 _________________________
@@ -191,15 +186,43 @@ _________________________
 _________________________
 *Idle*
 """
-    # Show template in monospace
-    st.code(template)
 
-    # WhatsApp link
+    st.code(template)  # Show template in monospace
+
+    # --- Send to WhatsApp ---
     if wa_input:
-        wa_template = f"```{template}```"
+        wa_template = f"```{template}```"  # Force monospace in WhatsApp
         if wa_type == "Private Number":
             wa_link = f"https://wa.me/{wa_input}?text={urllib.parse.quote(wa_template)}"
-        else:
-            # Group link
-            wa_link = wa_input
-        st.markdown(f"[Open WhatsApp]({wa_link})", unsafe
+        else:  # Group link
+            wa_link = f"{wa_input}"  # User should paste full group invite link
+
+        st.markdown(f"[Open WhatsApp]({wa_link})", unsafe_allow_html=True)
+
+# --- Save cumulative on app exit ---
+def save_cumulative():
+    cumulative["done_load"] += fwd_load + mid_load + aft_load + poop_load
+    cumulative["done_disch"] += fwd_disch + mid_disch + aft_disch + poop_disch
+    cumulative["done_restow_load"] += fwd_restow_load + mid_restow_load + aft_restow_load + poop_restow_load
+    cumulative["done_restow_disch"] += fwd_restow_disch + mid_restow_disch + aft_restow_disch + poop_restow_disch
+    cumulative["last_hour"] = hourly_time
+
+    # Save editable persistent fields
+    cumulative.update({
+        "vessel_name": vessel_name,
+        "berthed_date": berthed_date,
+        "planned_load": planned_load,
+        "planned_disch": planned_disch,
+        "planned_restow_load": planned_restow_load,
+        "planned_restow_disch": planned_restow_disch,
+        "opening_load": opening_load,
+        "opening_disch": opening_disch,
+        "opening_restow_load": opening_restow_load,
+        "opening_restow_disch": opening_restow_disch
+    })
+
+    with open(SAVE_FILE, "w") as f:
+        json.dump(cumulative, f)
+
+# Save automatically when script exits
+save_cumulative()
