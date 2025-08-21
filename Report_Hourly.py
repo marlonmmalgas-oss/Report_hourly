@@ -176,8 +176,7 @@ Remain     {remaining_restow_load:>5}      {remaining_restow_disch:>5}
 _________________________
 *Hatch Moves*
            Open   Close
-FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:
-	:>5}
+FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:>5}
 MID        {hatch_mid_open:>5}      {hatch_mid_close:>5}
 AFT        {hatch_aft_open:>5}      {hatch_aft_close:>5}
 _________________________
