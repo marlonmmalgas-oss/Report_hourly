@@ -97,6 +97,10 @@ hatch_mid_close = st.number_input("MID Hatch Close", min_value=0, value=0)
 hatch_aft_open = st.number_input("AFT Hatch Open", min_value=0, value=0)
 hatch_aft_close = st.number_input("AFT Hatch Close", min_value=0, value=0)
 
+# --- WhatsApp Number Input ---
+st.header("Send to WhatsApp")
+whatsapp_number = st.text_input("Enter WhatsApp Number (with country code, e.g., 27761234567)")
+
 # --- Submit Button ---
 if st.button("Submit Hourly Moves"):
 
@@ -126,13 +130,13 @@ if st.button("Submit Hourly Moves"):
     with open(SAVE_FILE, "w") as f:
         json.dump(cumulative, f)
 
-    # --- Calculate remaining totals (using opening balances internally) ---
+    # --- Calculate remaining totals ---
     remaining_load = planned_load - cumulative["done_load"] - opening_load
     remaining_disch = planned_disch - cumulative["done_disch"] - opening_disch
     remaining_restow_load = planned_restow_load - cumulative["done_restow_load"] - opening_restow_load
     remaining_restow_disch = planned_restow_disch - cumulative["done_restow_disch"] - opening_restow_disch
 
-    # --- WhatsApp Template (exactly like your example, POOP included) ---
+    # --- WhatsApp Template ---
     template = f"""\
 {vessel_name}
 Berthed {berthed_date}
@@ -146,43 +150,47 @@ _________________________
    *HOURLY MOVES*
 _________________________
 *Crane Moves*
-           Load      Discharge
-FWD      {fwd_load:>5}       {fwd_disch:>5}
-MID      {mid_load:>5}       {mid_disch:>5}
-AFT      {aft_load:>5}       {aft_disch:>5}
-POOP     {poop_load:>5}       {poop_disch:>5}
-_______________________
-*Restows*
-          Load      Discharge
-FWD      {fwd_restow_load:>5}       {fwd_restow_disch:>5}
-MID      {mid_restow_load:>5}       {mid_restow_disch:>5}
-AFT      {aft_restow_load:>5}       {aft_restow_disch:>5}
-POOP     {poop_restow_load:>5}       {poop_restow_disch:>5}
-
-_______________________
-      *CUMULATIVE* ________________________
-                Load      Disch
-Plan.        {planned_load:>5}           {planned_disch:>5}
-Done        {cumulative['done_load']:>5}           {cumulative['done_disch']:>5}
-Remain     {remaining_load:>5}           {remaining_disch:>5}
-________________________    
-  *Restows*
-               Load     Disch
-Plan         {planned_restow_load:>5}          {planned_restow_disch:>5}
-Done         {cumulative['done_restow_load']:>5}          {cumulative['done_restow_disch']:>5}
-Remain       {remaining_restow_load:>5}          {remaining_restow_disch:>5}
-_______________________
-*Hatch Moves*
-            Open    Close
-FWD     {hatch_fwd_open:>5}       {hatch_fwd_close:>5}
-MID     {hatch_mid_open:>5}       {hatch_mid_close:>5}
-AFT     {hatch_aft_open:>5}       {hatch_aft_close:>5}
-                       
+           Load   Discharge
+FWD        {fwd_load:>5}     {fwd_disch:>5}
+MID        {mid_load:>5}     {mid_disch:>5}
+AFT        {aft_load:>5}     {aft_disch:>5}
+POOP       {poop_load:>5}     {poop_disch:>5}
 _________________________
-*Gear boxes* 
+*Restows*
+           Load   Discharge
+FWD        {fwd_restow_load:>5}     {fwd_restow_disch:>5}
+MID        {mid_restow_load:>5}     {mid_restow_disch:>5}
+AFT        {aft_restow_load:>5}     {aft_restow_disch:>5}
+POOP       {poop_restow_load:>5}     {poop_restow_disch:>5}
+_________________________
+      *CUMULATIVE*
+_________________________
+           Load   Disch
+Plan       {planned_load:>5}      {planned_disch:>5}
+Done       {cumulative['done_load']:>5}      {cumulative['done_disch']:>5}
+Remain     {remaining_load:>5}      {remaining_disch:>5}
+_________________________
+*Restows*
+           Load   Disch
+Plan       {planned_restow_load:>5}      {planned_restow_disch:>5}
+Done       {cumulative['done_restow_load']:>5}      {cumulative['done_restow_disch']:>5}
+Remain     {remaining_restow_load:>5}      {remaining_restow_disch:>5}
+_________________________
+*Hatch Moves*
+           Open   Close
+FWD        {hatch_fwd_open:>5}      {hatch_fwd_close:>5}
+MID        {hatch_mid_open:>5}      {hatch_mid_close:>5}
+AFT        {hatch_aft_open:>5}      {hatch_aft_close:>5}
+_________________________
+*Gear boxes*
 
-________________________
+_________________________
 *Idle*
 """
 
     st.text_area("WhatsApp Template", template, height=600)
+
+    # --- Send to WhatsApp ---
+    if whatsapp_number:
+        wa_link = f"https://wa.me/{whatsapp_number}?text={urllib.parse.quote(template)}"
+        st.markdown(f"[Click here to open WhatsApp](<{wa_link}>)", unsafe_allow_html=True)
